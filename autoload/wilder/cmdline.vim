@@ -1212,34 +1212,17 @@ function! s:filter_file_in_path(ctx, xs, data) abort
 endfunction
 
 function! s:get_lua_completion(ctx, res, fuzzy) abort
-  let l:last_char = a:res.arg[-1 :]
-  if !empty(l:last_char) &&
-        \ l:last_char !~# '\w' &&
-        \ l:last_char !=# '_' &&
-        \ l:last_char !=# '.'
-    " _expand_arg fails when arg ends with non-identifier
+  if empty(a:res.arg)
     let l:candidates = luaeval('{vim._expand_pat("")}')[0]
-    let l:arg_pos = len(a:res.arg)
+    let l:arg_pos = 0
   else
-    let [l:candidates, l:arg_pos] = luaeval('{vim._expand_pat("^" .. _A[1])}', [a:res.arg])
-
-    if a:fuzzy
-      let l:last_char = a:res.arg[-1 :]
-
-      " use arg_pos to calculate where arg starts
-      let l:arg = l:arg_pos > 0 ?
-            \ a:res.arg[: l:arg_pos - 1] :
-            \ ''
-
-      let l:last_char = l:arg[-1 :]
-      if !empty(l:last_char) &&
-            \ l:last_char !~# '\w' &&
-            \ l:last_char !=# '_' &&
-            \ l:last_char !=# '.'
-        let l:candidates = luaeval('{vim._expand_pat("")}')[0]
-      else
-        let l:candidates = luaeval('{vim._expand_pat("^" .. _A[1])}', [l:arg])[0]
-      endif
+    let l:last_char = a:res.arg[-1 :]
+    if l:last_char !~# '\w' && l:last_char !=# '_' && l:last_char !=# '.'
+      " _expand_arg fails when arg ends with non-identifier
+      let l:candidates = luaeval('{vim._expand_pat("")}')[0]
+      let l:arg_pos = len(a:res.arg)
+    else
+      let [l:candidates, l:arg_pos] = luaeval('{vim._expand_pat(_A[1])}', [a:res.arg])
     endif
   endif
 
